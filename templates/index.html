@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Flight Recommendation System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --secondary: #0f172a;
+            --accent: #f59e0b;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow: 0 10px 25px -5px rgba(15,23,42,0.08), 0 8px 10px -6px rgba(15,23,42,0.04);
+            --shadow-lg: 0 20px 35px -5px rgba(15,23,42,0.12), 0 10px 15px -5px rgba(15,23,42,0.06);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--background); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column;
+            background-image: radial-gradient(at 100% 0%, rgba(37,99,235,0.06) 0px, transparent 50%),
+                              radial-gradient(at 0% 100%, rgba(245,158,11,0.05) 0px, transparent 50%); }
+
+        /* Navbar */
+        .navbar { background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 2rem;
+            display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            position: sticky; top: 0; z-index: 100; }
+        .brand-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--secondary); font-weight: 800; font-size: 1.15rem; }
+        .brand-logo i { background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; padding: 10px; border-radius: 10px; font-size: 1.1rem; }
+        .nav-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+        .nav-badge { background: var(--primary-light); color: var(--primary); padding: 5px 12px; border-radius: 20px;
+            font-size: 0.78rem; font-weight: 600; border: 1px solid #bfdbfe; display: flex; align-items: center; gap: 5px; }
+        .nav-badge.graph { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+
+        /* Container */
+        .container { max-width: 1280px; margin: 1.5rem auto; padding: 0 1.5rem; flex: 1; }
+
+        /* Hero */
+        .hero { text-align: center; margin-bottom: 2rem; }
+        .hero h1 { font-size: 2rem; font-weight: 800; color: var(--secondary); margin-bottom: 0.4rem; letter-spacing: -0.5px; }
+        .hero p { color: var(--text-muted); font-size: 0.95rem; max-width: 750px; margin: 0 auto; line-height: 1.5; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; background: #fff; padding: 4px; border-radius: 12px;
+            border: 1px solid var(--border-color); width: fit-content; margin-left: auto; margin-right: auto; }
+        .tab-btn { padding: 8px 20px; border: none; background: transparent; border-radius: 8px; font-size: 0.88rem;
+            font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+        .tab-btn:hover:not(.active) { background: var(--primary-light); color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Grid */
+        .app-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 1000px) { .app-grid { grid-template-columns: 1fr; } }
+
+        /* Cards */
+        .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 1.5rem; border: 1px solid var(--border-color); box-shadow: var(--shadow); }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .card-title { font-size: 1.05rem; font-weight: 700; color: var(--secondary); display: flex; align-items: center; gap: 8px; }
+        .card-title i { color: var(--primary); }
+
+        /* Form */
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group.full-width { grid-column: span 2; }
+        @media (max-width: 600px) { .form-group.full-width { grid-column: span 1; } }
+        label { font-size: 0.82rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 5px; }
+        label i { color: var(--primary); font-size: 0.85rem; }
+        input, select { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border-color); border-radius: var(--radius-md);
+            background: #fff; font-size: 0.9rem; color: var(--text-dark); outline: none; transition: all 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+        .quick-chips { display: flex; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+        .chip { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 7px;
+            font-size: 0.72rem; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.15s; }
+        .chip:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+
+        /* Buttons */
+        .btn-predict { width: 100%; background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white;
+            border: none; padding: 0.9rem; border-radius: var(--radius-md); font-size: 1rem; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 14px rgba(37,99,235,0.35); transition: all 0.2s; margin-top: 1.25rem; }
+        .btn-predict:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.45); }
+        .btn-predict:active { transform: translateY(0); }
+        .btn-predict:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        /* Results Panel */
+        .results-panel { display: flex; flex-direction: column; gap: 1rem; }
+
+        /* Placeholder */
+        .placeholder-box { background: #fff; border: 2px dashed #cbd5e1; border-radius: var(--radius-lg);
+            padding: 3rem 2rem; text-align: center; color: var(--text-muted); }
+        .placeholder-box i { font-size: 2.5rem; color: #94a3b8; margin-bottom: 0.75rem; }
+
+        /* Loading Spinner */
+        .loading-overlay { display: none; background: rgba(255,255,255,0.9); border-radius: var(--radius-lg);
+            padding: 3rem; text-align: center; border: 1px solid var(--border-color); }
+        .loading-overlay.active { display: block; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--primary);
+            border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Recommendation Cards */
+        .rec-card { background: #fff; border-radius: var(--radius-lg); padding: 1.25rem; border: 1px solid var(--border-color);
+            box-shadow: var(--shadow); animation: fadeIn 0.4s ease-out; position: relative; overflow: hidden; transition: all 0.2s; }
+        .rec-card:hover { box-shadow: var(--shadow-lg); }
+        .rec-card.top-pick { border-color: var(--primary); border-width: 2px; }
+        .rec-card.top-pick::before { content: '★ TOP PICK'; position: absolute; top: 0; right: 0;
+            background: var(--primary); color: white; padding: 3px 12px; font-size: 0.7rem; font-weight: 700;
+            border-radius: 0 0 0 8px; letter-spacing: 0.5px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .rec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+        .airline-banner { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px;
+            border-radius: 25px; font-size: 1.05rem; font-weight: 800; color: white; }
+        .airline-banner.IndiGo { background: linear-gradient(135deg, #001e62, #004ecc); }
+        .airline-banner.AirIndia { background: linear-gradient(135deg, #b91c1c, #dc2626); }
+        .airline-banner.Vistara { background: linear-gradient(135deg, #581c87, #7e22ce); }
+        .airline-banner.SpiceJet { background: linear-gradient(135deg, #ea580c, #f97316); }
+        .airline-banner.AkasaAir { background: linear-gradient(135deg, #c2410c, #f59e0b); }
+
+        .score-badge { font-size: 0.82rem; font-weight: 700; padding: 5px 10px; border-radius: 20px;
+            display: flex; align-items: center; gap: 4px; }
+        .score-badge.high { color: var(--success); background: #ecfdf5; border: 1px solid #a7f3d0; }
+        .score-badge.medium { color: var(--warning); background: #fffbeb; border: 1px solid #fde68a; }
+        .score-badge.low { color: var(--danger); background: #fef2f2; border: 1px solid #fecaca; }
+
+        /* Stats Row */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 0.75rem; }
+        @media (max-width: 500px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        .stat-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; text-align: center; }
+        .stat-label { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+        .stat-value { font-size: 0.95rem; font-weight: 700; color: var(--text-dark); }
+
+        /* Explanation */
+        .explanation-box { background: #f8fafc; border-left: 4px solid var(--primary); padding: 0.9rem;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-bottom: 0.75rem; }
+        .explanation-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--primary); margin-bottom: 3px; }
+        .explanation-text { font-size: 0.88rem; line-height: 1.4; color: #334155; font-weight: 500; }
+
+        /* Highlights */
+        .highlights-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-bottom: 0.75rem; }
+        .highlight-item { display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; color: #475569;
+            background: #fff; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); line-height: 1.35; }
+        .highlight-item i { color: var(--success); margin-top: 2px; flex-shrink: 0; }
+
+        /* Trade-offs */
+        .trade-off-item { display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; color: #92400e;
+            background: #fffbeb; padding: 6px 10px; border-radius: 6px; border: 1px solid #fde68a; margin-bottom: 4px; }
+        .trade-off-item i { color: var(--warning); margin-top: 2px; flex-shrink: 0; }
+
+        /* Category Tags */
+        .category-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        .cat-tag { font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+            display: flex; align-items: center; gap: 4px; }
+        .cat-tag.best { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .cat-tag.cheap { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .cat-tag.fast { background: #faf5ff; color: #9333ea; border: 1px solid #d8b4fe; }
+        .cat-tag.rated { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+
+        /* Toggle Details */
+        .toggle-details { background: none; border: none; color: var(--primary); font-size: 0.82rem;
+            font-weight: 600; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px; }
+        .detail-panel { display: none; margin-top: 8px; }
+        .detail-panel.open { display: block; }
+
+        /* Score Bars */
+        .score-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+        .score-bar-item { display: flex; align-items: center; gap: 6px; }
+        .score-bar-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); min-width: 70px; }
+        .score-bar-track { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .score-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+        .score-bar-fill.green { background: var(--success); }
+        .score-bar-fill.blue { background: var(--primary); }
+        .score-bar-fill.orange { background: var(--warning); }
+        .score-bar-fill.red { background: var(--danger); }
+
+        /* Comparison Table */
+        .comparison-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .comparison-table th { background: #f1f5f9; padding: 8px 10px; text-align: left; font-weight: 700;
+            color: var(--text-dark); border-bottom: 2px solid var(--border-color); }
+        .comparison-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
+        .comparison-table tr:hover { background: #f8fafc; }
+        .comparison-table .winner { font-weight: 700; color: var(--success); }
+
+        /* Feedback */
+        .feedback-section { border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem; }
+        .feedback-title { font-size: 0.95rem; font-weight: 700; color: var(--secondary); margin-bottom: 0.5rem;
+            display: flex; align-items: center; gap: 8px; }
+        .star-rating { display: flex; gap: 5px; font-size: 1.3rem; color: #cbd5e1; cursor: pointer; margin-bottom: 0.5rem; }
+        .star-rating i.active { color: var(--accent); }
+        .feedback-comment { width: 100%; height: 60px; padding: 0.5rem 0.7rem; border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md); font-size: 0.85rem; resize: none; margin-bottom: 0.5rem; }
+        .feedback-comment:focus { outline: none; border-color: var(--primary); }
+        .btn-feedback { background: var(--secondary); color: white; border: none; padding: 0.5rem 1rem;
+            border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex;
+            align-items: center; gap: 6px; transition: all 0.2s; }
+        .btn-feedback:hover { background: #1e293b; }
+        .feedback-msg { display: none; margin-top: 0.5rem; padding: 0.5rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
+        .feedback-msg.success { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .feedback-msg.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* Recent Feedback */
+        .recent-feedback-card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 1.25rem;
+            border: 1px solid var(--border-color); box-shadow: var(--shadow); }
+        .recent-feedback-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+        .recent-feedback-header h3 { font-size: 0.95rem; font-weight: 700; color: var(--secondary); }
+        .db-status-badge { font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 12px;
+            background: #e2e8f0; color: #475569; }
+        .feedback-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+        .feedback-entry { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 10px; font-size: 0.8rem; }
+        .feedback-entry-top { display: flex; justify-content: space-between; margin-bottom: 3px; font-weight: 600; }
+
+        /* Meta Info */
+        .meta-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        .meta-chip { font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+            background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        /* Footer */
+        footer { text-align: center; padding: 1.25rem; color: var(--text-muted); font-size: 0.82rem;
+            border-top: 1px solid var(--border-color); background: #fff; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="#" class="brand-logo">
+            <i class="fa-solid fa-plane-departure"></i>
+            <span>AeroMatch AI</span>
+        </a>
+        <div class="nav-badges">
+            <span class="nav-badge"><i class="fa-solid fa-microchip"></i> Decision Tree</span>
+            <span class="nav-badge graph"><i class="fa-solid fa-diagram-project"></i> Graph Link Prediction</span>
+            <span class="nav-badge graph"><i class="fa-solid fa-layer-group"></i> K-Means Clustering</span>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Hero -->
+        <div class="hero">
+            <h1>Smart Personalized Flight Recommendation System</h1>
+            <p>Enter your travel preferences to receive ranked airline recommendations powered by a hybrid engine combining
+               <strong>graph-based link prediction</strong>, <strong>K-Means clustering</strong>, and <strong>Decision Tree classification</strong>
+               — inspired by IEEE research on personalized flight recommendation.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('recommend')">
+                <i class="fa-solid fa-magnifying-glass-location"></i> Recommend
+            </button>
+            <button class="tab-btn" onclick="switchTab('compare')">
+                <i class="fa-solid fa-code-compare"></i> Compare
+            </button>
+            <button class="tab-btn" onclick="switchTab('feedback-tab')">
+                <i class="fa-solid fa-database"></i> Feedback Log
+            </button>
+        </div>
+
+        <!-- Tab: Recommend -->
+        <div id="tab-recommend" class="tab-content active">
+            <div class="app-grid">
+
+                <!-- Left: Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span>Travel Preferences</span>
+                        </div>
+                        <button class="chip" type="button" onclick="loadSamplePreferences()">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Sample Input
+                        </button>
+                    </div>
+
+                    <form id="recommendation-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="source"><i class="fa-solid fa-location-dot"></i> From (Source)</label>
+                                <select id="source" name="source" required>
+                                    <option value="Chennai" selected>Chennai</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Mumbai">Mumbai</option>
+                                    <option value="Kolkata">Kolkata</option>
+                                    <option value="Bangalore">Bangalore</option>
+                                    <option value="Hyderabad">Hyderabad</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="destination"><i class="fa-solid fa-location-crosshairs"></i> To (Destination)</label>
+                                <select id="destination" name="destination" required>
+                                    <option value="Delhi" selected>Delhi</option>
+                                    <option value="Chennai">Chennai</option>
+                                    <option value="Mumbai">Mumbai</option>
+                                    <option value="Kolkata">Kolkata</option>
+                                    <option value="Bangalore">Bangalore</option>
+                                    <option value="Hyderabad">Hyderabad</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="budget"><i class="fa-solid fa-indian-rupee-sign"></i> Budget (₹)</label>
+                                <input type="number" id="budget" name="budget" value="5000" min="2000" max="50000" step="100" required>
+                                <div class="quick-chips">
+                                    <span class="chip" onclick="setVal('budget',3500)">₹3,500</span>
+                                    <span class="chip" onclick="setVal('budget',5000)">₹5,000</span>
+                                    <span class="chip" onclick="setVal('budget',8000)">₹8,000</span>
+                                    <span class="chip" onclick="setVal('budget',16000)">₹16,000</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="duration"><i class="fa-regular fa-clock"></i> Duration (mins)</label>
+                                <input type="number" id="duration" name="duration" value="150" min="30" max="800" required>
+                                <div class="quick-chips">
+                                    <span class="chip" onclick="setVal('duration',90)">90</span>
+                                    <span class="chip" onclick="setVal('duration',150)">150</span>
+                                    <span class="chip" onclick="setVal('duration',250)">250</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="stops"><i class="fa-solid fa-route"></i> Stops</label>
+                                <select id="stops" name="stops">
+                                    <option value="0" selected>0 (Direct)</option>
+                                    <option value="1">1 Stop</option>
+                                    <option value="2">2 Stops</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="rating"><i class="fa-solid fa-star"></i> Min Rating</label>
+                                <select id="rating" name="rating">
+                                    <option value="3.5">3.5+ Average</option>
+                                    <option value="4.0" selected>4.0+ Recommended</option>
+                                    <option value="4.5">4.5+ Excellent</option>
+                                    <option value="4.8">4.8+ Premium</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="travel_class"><i class="fa-solid fa-couch"></i> Class</label>
+                                <select id="travel_class" name="travel_class">
+                                    <option value="Economy" selected>Economy</option>
+                                    <option value="Premium Economy">Premium Economy</option>
+                                    <option value="Business">Business</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="seat"><i class="fa-solid fa-chair"></i> Seat</label>
+                                <select id="seat" name="seat">
+                                    <option value="Window" selected>Window</option>
+                                    <option value="Aisle">Aisle</option>
+                                    <option value="Middle">Middle</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="departure_time"><i class="fa-regular fa-calendar-check"></i> Departure Time</label>
+                                <select id="departure_time" name="departure_time">
+                                    <option value="6 AM">Early Morning (6 AM)</option>
+                                    <option value="8 AM">Morning (8 AM)</option>
+                                    <option value="10 AM" selected>Morning (10 AM)</option>
+                                    <option value="12 PM">Noon (12 PM)</option>
+                                    <option value="2 PM">Afternoon (2 PM)</option>
+                                    <option value="4 PM">Evening (4 PM)</option>
+                                    <option value="6 PM">Evening (6 PM)</option>
+                                    <option value="8 PM">Night (8 PM)</option>
+                                    <option value="10 PM">Late Night (10 PM)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" id="btn-submit" class="btn-predict">
+                            <i class="fa-solid fa-magnifying-glass-location"></i>
+                            <span>FIND BEST FLIGHTS</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right: Results -->
+                <div class="results-panel">
+                    <div id="placeholder-box" class="placeholder-box">
+                        <i class="fa-solid fa-plane-up"></i>
+                        <h3>Ready for Recommendations</h3>
+                        <p style="margin-top:6px; font-size:0.88rem;">Fill in your travel preferences and click "Find Best Flights" to get ranked recommendations with explanations.</p>
+                    </div>
+
+                    <div id="loading-overlay" class="loading-overlay">
+                        <div class="spinner"></div>
+                        <p style="font-weight:600; color:var(--text-dark);">Analyzing routes & ranking flights...</p>
+                        <p style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">Graph analysis • Clustering • Decision Tree</p>
+                    </div>
+
+                    <div id="results-container" style="display:none;">
+                        <!-- Meta info bar -->
+                        <div id="meta-bar" class="meta-bar"></div>
+                        <!-- Recommendation cards rendered here -->
+                        <div id="rec-cards-container"></div>
+                        <!-- Feedback section -->
+                        <div id="feedback-section-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Compare -->
+        <div id="tab-compare" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fa-solid fa-code-compare"></i> Airline Comparison</div>
+                </div>
+                <div id="comparison-content">
+                    <p style="color:var(--text-muted); text-align:center; padding:2rem;">
+                        Get recommendations first, then switch to this tab to compare them side-by-side.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Feedback Log -->
+        <div id="tab-feedback-tab" class="tab-content">
+            <div class="recent-feedback-card">
+                <div class="recent-feedback-header">
+                    <h3><i class="fa-solid fa-database"></i> Database Feedback Log</h3>
+                    <span id="db-storage-tag" class="db-status-badge">Connecting...</span>
+                </div>
+                <div class="feedback-list" id="feedback-records-list">
+                    <div style="color:var(--text-muted); font-size:0.85rem;">Loading stored feedback...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p><strong>Smart Personalized Flight Recommendation System</strong> &bull; Powered by Graph Link Prediction + K-Means Clustering + Decision Tree</p>
+        <p style="margin-top:4px; font-size:0.78rem;">Based on IEEE Access paper: "A Personalized Flight Recommender System Based on Link Prediction in Aviation Data" (2024) &bull; Synthetic dataset: 6 Indian cities, 5 airlines</p>
+    </footer>
+
+    <script>
+        let currentRating = 5;
+        let lastRecommendations = null;
+        let lastMeta = null;
+        let lastInputs = null;
+
+        // --- Tab Switching ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.closest('.tab-btn').classList.add('active');
+        }
+
+        // --- Quick Value Setters ---
+        function setVal(id, val) { document.getElementById(id).value = val; }
+
+        function loadSamplePreferences() {
+            document.getElementById('source').value = 'Chennai';
+            document.getElementById('destination').value = 'Delhi';
+            document.getElementById('budget').value = 5000;
+            document.getElementById('duration').value = 150;
+            document.getElementById('stops').value = '0';
+            document.getElementById('rating').value = '4.0';
+            document.getElementById('travel_class').value = 'Economy';
+            document.getElementById('seat').value = 'Window';
+            document.getElementById('departure_time').value = '10 AM';
+        }
+
+        // --- Star Rating ---
+        function initStarRating(container) {
+            const stars = container.querySelectorAll('.star-rating i');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    currentRating = parseInt(this.getAttribute('data-rating'));
+                    stars.forEach(s => {
+                        s.classList.toggle('active', parseInt(s.getAttribute('data-rating')) <= currentRating);
+                    });
+                });
+            });
+        }
+
+        // --- Form Submit ---
+        document.getElementById('recommendation-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const source = document.getElementById('source').value;
+            const destination = document.getElementById('destination').value;
+            if (source === destination) { alert('Source and Destination cannot be the same city.'); return; }
+
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...';
+
+            document.getElementById('placeholder-box').style.display = 'none';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('loading-overlay').classList.add('active');
+
+            const payload = {
+                source, destination,
+                budget: parseFloat(document.getElementById('budget').value),
+                duration: parseFloat(document.getElementById('duration').value),
+                stops: parseInt(document.getElementById('stops').value),
+                rating: parseFloat(document.getElementById('rating').value),
+                travel_class: document.getElementById('travel_class').value,
+                seat: document.getElementById('seat').value,
+                departure_time: document.getElementById('departure_time').value
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    lastRecommendations = data.recommendations || [];
+                    lastMeta = data.meta || {};
+                    lastInputs = payload;
+                    displayResults(data);
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to get recommendations'));
+                    document.getElementById('placeholder-box').style.display = 'block';
+                }
+            } catch (err) {
+                alert('Server connection error. Ensure the Flask app is running.');
+                console.error(err);
+                document.getElementById('placeholder-box').style.display = 'block';
+            } finally {
+                document.getElementById('loading-overlay').classList.remove('active');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass-location"></i> FIND BEST FLIGHTS';
+            }
+        });
+
+        // --- Display Results ---
+        function displayResults(data) {
+            const recs = data.recommendations || [];
+            const meta = data.meta || {};
+            const categories = meta.categories || {};
+
+            if (recs.length === 0) {
+                document.getElementById('rec-cards-container').innerHTML =
+                    '<div class="placeholder-box"><i class="fa-solid fa-route"></i><h3>No Flights Found</h3><p style="margin-top:6px; font-size:0.88rem;">' +
+                    (data.message || 'Try a different route or adjust preferences.') + '</p></div>';
+                document.getElementById('results-container').style.display = 'block';
+                return;
+            }
+
+            // Meta bar
+            let metaHtml = '';
+            if (meta.route_connectivity) metaHtml += `<span class="meta-chip"><i class="fa-solid fa-diagram-project"></i> Route Score: ${meta.route_connectivity.toFixed(2)}</span>`;
+            if (meta.total_route_flights) metaHtml += `<span class="meta-chip"><i class="fa-solid fa-plane"></i> ${meta.total_route_flights} flights on route</span>`;
+            if (meta.dt_prediction) metaHtml += `<span class="meta-chip"><i class="fa-solid fa-microchip"></i> DT Pick: ${meta.dt_prediction} (${meta.dt_confidence}%)</span>`;
+            if (meta.cluster_id !== undefined) metaHtml += `<span class="meta-chip"><i class="fa-solid fa-layer-group"></i> Cluster #${meta.cluster_id}</span>`;
+            document.getElementById('meta-bar').innerHTML = metaHtml;
+
+            // Recommendation cards
+            let cardsHtml = '';
+            recs.forEach((rec, i) => {
+                const isTop = i === 0;
+                const scoreClass = rec.score >= 70 ? 'high' : rec.score >= 50 ? 'medium' : 'low';
+                const airlineClass = rec.airline.replace(/\s+/g, '');
+
+                // Category tags
+                let catTags = '';
+                if (categories.best_overall === rec.airline) catTags += '<span class="cat-tag best"><i class="fa-solid fa-trophy"></i> Best Overall</span>';
+                if (categories.lowest_price === rec.airline) catTags += '<span class="cat-tag cheap"><i class="fa-solid fa-tag"></i> Lowest Price</span>';
+                if (categories.shortest_duration === rec.airline) catTags += '<span class="cat-tag fast"><i class="fa-solid fa-bolt"></i> Shortest</span>';
+                if (categories.highest_rated === rec.airline) catTags += '<span class="cat-tag rated"><i class="fa-solid fa-star"></i> Highest Rated</span>';
+
+                // Stats
+                const bf = rec.best_flight || {};
+                const stats = rec.airline_stats || {};
+
+                // Highlights
+                let highlightsHtml = '';
+                (rec.highlights || []).forEach(h => {
+                    highlightsHtml += `<li class="highlight-item"><i class="fa-solid fa-circle-check"></i><span>${h}</span></li>`;
+                });
+
+                // Trade-offs
+                let tradeOffsHtml = '';
+                (rec.trade_offs || []).forEach(t => {
+                    tradeOffsHtml += `<div class="trade-off-item"><i class="fa-solid fa-triangle-exclamation"></i><span>${t}</span></div>`;
+                });
+
+                // Score breakdown bars
+                const sc = rec.score_components || {};
+                let barsHtml = '';
+                const barItems = [
+                    ['Price', sc.price_match, 'green'], ['Rating', sc.rating_match, 'blue'],
+                    ['Duration', sc.duration_match, 'blue'], ['Stops', sc.stops_match, 'green'],
+                    ['Route', sc.route_connectivity, 'blue'], ['Class', sc.class_match, 'green'],
+                    ['Frequency', sc.frequency, 'orange'], ['Time', sc.time_match, 'green'],
+                ];
+                barItems.forEach(([label, val, color]) => {
+                    const pct = Math.round((val || 0) * 100);
+                    barsHtml += `<div class="score-bar-item"><span class="score-bar-label">${label}</span>
+                        <div class="score-bar-track"><div class="score-bar-fill ${color}" style="width:${pct}%"></div></div></div>`;
+                });
+
+                cardsHtml += `
+                <div class="rec-card ${isTop ? 'top-pick' : ''}" style="animation-delay:${i * 0.1}s">
+                    <div class="rec-header">
+                        <div class="airline-banner ${airlineClass}">
+                            <i class="fa-solid fa-plane"></i> ${rec.airline}
+                        </div>
+                        <div class="score-badge ${scoreClass}">
+                            <i class="fa-solid fa-circle-check"></i> ${rec.score}% Match
+                        </div>
+                    </div>
+
+                    ${catTags ? '<div class="category-tags">' + catTags + '</div>' : ''}
+
+                    <div class="stats-row">
+                        <div class="stat-item"><div class="stat-label">Price</div><div class="stat-value">₹${(bf.price || stats.avg_price || 0).toLocaleString()}</div></div>
+                        <div class="stat-item"><div class="stat-label">Duration</div><div class="stat-value">${bf.duration || stats.avg_duration || '—'} min</div></div>
+                        <div class="stat-item"><div class="stat-label">Stops</div><div class="stat-value">${bf.stops !== undefined ? bf.stops : '—'}</div></div>
+                        <div class="stat-item"><div class="stat-label">Rating</div><div class="stat-value">${(bf.rating || stats.avg_rating || 0)}★</div></div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Why ${rec.airline}?</div>
+                        <div class="explanation-text">${rec.explanation || ''}</div>
+                    </div>
+
+                    ${highlightsHtml ? '<ul class="highlights-list">' + highlightsHtml + '</ul>' : ''}
+                    ${tradeOffsHtml}
+
+                    <button class="toggle-details" onclick="toggleDetail(${i})">
+                        <i class="fa-solid fa-chart-bar"></i> <span id="toggle-label-${i}">Show Score Breakdown</span>
+                    </button>
+                    <div id="detail-panel-${i}" class="detail-panel">
+                        <div class="score-bars">${barsHtml}</div>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('rec-cards-container').innerHTML = cardsHtml;
+
+            // Feedback section (only after top result)
+            document.getElementById('feedback-section-container').innerHTML = `
+                <div class="card" style="margin-top:0.75rem;">
+                    <div class="feedback-section" style="border-top:none; padding-top:0; margin-top:0;">
+                        <div class="feedback-title"><i class="fa-solid fa-comment-dots"></i> Rate the Recommendations</div>
+                        <div class="star-rating" id="star-rating">
+                            ${[1,2,3,4,5].map(n => `<i class="fa-solid fa-star active" data-rating="${n}"></i>`).join('')}
+                        </div>
+                        <textarea id="feedback-comment" class="feedback-comment" placeholder="Share your thoughts..."></textarea>
+                        <button type="button" class="btn-feedback" id="btn-feedback" onclick="submitFeedback()">
+                            <i class="fa-solid fa-paper-plane"></i> Submit Feedback
+                        </button>
+                        <div id="feedback-alert" class="feedback-msg"></div>
+                    </div>
+                </div>`;
+            initStarRating(document.getElementById('feedback-section-container'));
+
+            // Build comparison table
+            buildComparison(recs, categories);
+
+            document.getElementById('results-container').style.display = 'block';
+        }
+
+        function toggleDetail(i) {
+            const panel = document.getElementById('detail-panel-' + i);
+            const label = document.getElementById('toggle-label-' + i);
+            panel.classList.toggle('open');
+            label.textContent = panel.classList.contains('open') ? 'Hide Score Breakdown' : 'Show Score Breakdown';
+        }
+
+        // --- Build Comparison Table ---
+        function buildComparison(recs, categories) {
+            if (!recs || recs.length === 0) return;
+            const cols = ['Airline', 'Score', 'Avg Price', 'Avg Duration', 'Avg Rating', 'Direct %', 'Flights', 'Tags'];
+            let html = '<div style="overflow-x:auto;"><table class="comparison-table"><thead><tr>';
+            cols.forEach(c => html += `<th>${c}</th>`);
+            html += '</tr></thead><tbody>';
+
+            recs.forEach(rec => {
+                const s = rec.airline_stats || {};
+                let tags = [];
+                if (categories.best_overall === rec.airline) tags.push('🏆 Best');
+                if (categories.lowest_price === rec.airline) tags.push('💰 Cheapest');
+                if (categories.shortest_duration === rec.airline) tags.push('⚡ Fastest');
+                if (categories.highest_rated === rec.airline) tags.push('⭐ Top Rated');
+
+                const isWinner = categories.best_overall === rec.airline;
+                html += `<tr>
+                    <td><strong>${rec.airline}</strong></td>
+                    <td${isWinner ? ' class="winner"' : ''}>${rec.score}%</td>
+                    <td>₹${(s.avg_price || 0).toLocaleString()}</td>
+                    <td>${s.avg_duration || '—'} min</td>
+                    <td>${s.avg_rating || '—'}★</td>
+                    <td>${s.direct_ratio || 0}%</td>
+                    <td>${s.flight_count || 0}</td>
+                    <td>${tags.join(' ')}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table></div>';
+            document.getElementById('comparison-content').innerHTML = html;
+        }
+
+        // --- Feedback ---
+        async function submitFeedback() {
+            if (!lastRecommendations || lastRecommendations.length === 0) {
+                alert('Get recommendations first!');
+                return;
+            }
+            const comment = document.getElementById('feedback-comment').value.trim();
+            const btn = document.getElementById('btn-feedback');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+
+            const payload = {
+                source: lastInputs.source,
+                destination: lastInputs.destination,
+                budget: lastInputs.budget,
+                travel_class: lastInputs.travel_class,
+                recommended_airline: lastRecommendations[0].airline,
+                rating: currentRating,
+                comment: comment || 'Useful recommendation'
+            };
+
+            try {
+                const res = await fetch('/feedback', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const data = await res.json();
+                const alertBox = document.getElementById('feedback-alert');
+                if (data.success) {
+                    alertBox.className = 'feedback-msg success';
+                    alertBox.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${data.message}`;
+                    document.getElementById('feedback-comment').value = '';
+                    fetchFeedbackLog();
+                } else {
+                    alertBox.className = 'feedback-msg error';
+                    alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.error || 'Failed'}`;
+                }
+            } catch (err) {
+                const alertBox = document.getElementById('feedback-alert');
+                alertBox.className = 'feedback-msg error';
+                alertBox.innerText = 'Could not submit feedback.';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Feedback';
+            }
+        }
+
+        // --- Fetch Feedback Log ---
+        async function fetchFeedbackLog() {
+            try {
+                const res = await fetch('/api/feedback');
+                const data = await res.json();
+                const badge = document.getElementById('db-storage-tag');
+                badge.innerText = data.source === 'MySQL' ? 'MySQL Connected' : (data.source || 'Active');
+                const list = document.getElementById('feedback-records-list');
+                list.innerHTML = '';
+                if (data.data && data.data.length > 0) {
+                    data.data.forEach(item => {
+                        const starsText = '⭐'.repeat(item.rating || 5);
+                        const div = document.createElement('div');
+                        div.className = 'feedback-entry';
+                        div.innerHTML = `<div class="feedback-entry-top">
+                            <span><strong>${item.recommended_airline}</strong> (${item.source} → ${item.destination})</span>
+                            <span>${starsText}</span></div>
+                            <div style="color:#64748b;">"${item.comment || 'No comment'}" &bull; <small>₹${item.budget || ''}</small></div>`;
+                        list.appendChild(div);
+                    });
+                } else {
+                    list.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:4px;">No feedback entries yet.</div>';
+                }
+            } catch (e) { console.warn('Could not load feedback log:', e); }
+        }
+
+        // --- Init ---
+        window.addEventListener('DOMContentLoaded', () => { fetchFeedbackLog(); });
+    </script>
+</body>
+</html>
